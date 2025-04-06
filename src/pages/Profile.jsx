@@ -15,6 +15,7 @@ import {
   updateUserStart,
   updateUserSuccess,
 } from "../redux/user/userSlice";
+import { getCookie } from "../utils/cookie.js";
 
 function Profile() {
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -27,9 +28,10 @@ function Profile() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    username: currentUser.username,
-    email: currentUser.email,
-    avatar: currentUser.avatar,
+    username: currentUser?.username || "",
+    email: currentUser?.email || "",
+    avatar: currentUser?.avatar || "",
+    password: "", // Add password field for potential updates
   });
 
   const dispatch = useDispatch();
@@ -88,26 +90,27 @@ function Profile() {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
+      const accessToken = getCookie("access_token");
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/user/update/${currentUser._id}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`, // Manually send token
           },
-          credentials: "include", // <-- added
           body: JSON.stringify(formData),
         }
       );
       const data = await res.json();
-      if (data.success === false) {
-        dispatch(updateUserFailure(data.message));
+      if (data?.success === false) {
+        dispatch(updateUserFailure(data?.message));
         return;
       }
       dispatch(updateUserSuccess(data));
       toast.success("User updated successfully!");
     } catch (error) {
-      dispatch(updateUserFailure(error.message));
+      dispatch(updateUserFailure(error?.message));
     }
   };
 
@@ -115,19 +118,20 @@ function Profile() {
     e.preventDefault();
     try {
       dispatch(deleteUserStart());
+      const accessToken = getCookie("access_token");
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/user/delete/${currentUser._id}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`, // Manually send token
           },
-          credentials: "include", // <-- added
         }
       );
       const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data.message));
+      if (data?.success === false) {
+        dispatch(deleteUserFailure(data?.message));
         return;
       }
       dispatch(deleteUserSuccess(data));
@@ -143,12 +147,12 @@ function Profile() {
       const res = await fetch(
         "https://wohngluk-api.onrender.com/api/auth/signout",
         {
-          credentials: "include", // <-- added
+          credentials: "include", // Keep this for cookie clearing
         }
       );
       const data = await res.json();
-      if (data.success === false) {
-        dispatch(signOutFailure(data.message));
+      if (data?.success === false) {
+        dispatch(signOutFailure(data?.message));
         return;
       }
       dispatch(signOutSuccess());
@@ -161,35 +165,41 @@ function Profile() {
   const handleShowListings = async () => {
     try {
       setShowListingError(false);
+      const accessToken = getCookie("access_token");
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/listing/user/${currentUser._id}`,
         {
-          credentials: "include", // <-- added
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Manually send token
+          },
         }
       );
       const data = await res.json();
-      if (data.success === false) {
+      if (data?.success === false) {
         setShowListingError(true);
         return;
       }
       setUserListings(data);
     } catch (error) {
-      setShowListingError(error);
+      setShowListingError(error?.message);
     }
   };
 
   const handleListingDelete = async (listingId) => {
     try {
+      const accessToken = getCookie("access_token");
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/listing/delete/${listingId}`,
         {
           method: "DELETE",
-          credentials: "include", // <-- added
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Manually send token
+          },
         }
       );
       const data = await res.json();
-      if (data.success === false) {
-        toast.error(data.message);
+      if (data?.success === false) {
+        toast.error(data?.message);
         return;
       }
       toast.success("Listing deleted successfully!");
@@ -197,7 +207,7 @@ function Profile() {
         prev.filter((listing) => listing._id !== listingId)
       );
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error?.message);
     }
   };
 
@@ -219,7 +229,7 @@ function Profile() {
           <div className="flex justify-center">
             <img
               onClick={() => fileRef.current.click()}
-              src={formData.avatar || currentUser.avatar}
+              src={formData.avatar || currentUser?.avatar}
               alt="Profile"
               className="rounded-full h-32 w-32 object-cover cursor-pointer shadow-lg border-4 border-indigo-300 hover:scale-105 transition-transform"
             />
@@ -234,7 +244,7 @@ function Profile() {
                 id="username"
                 placeholder="Username"
                 className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                defaultValue={currentUser.username}
+                defaultValue={currentUser?.username}
                 onChange={handleChange}
               />
             </div>
@@ -248,7 +258,7 @@ function Profile() {
                 readOnly
                 placeholder="Email"
                 className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                defaultValue={currentUser.email}
+                defaultValue={currentUser?.email}
                 onChange={handleChange}
               />
             </div>
@@ -263,6 +273,7 @@ function Profile() {
                   placeholder="New Password"
                   className="border border-gray-300 p-3 rounded-lg w-full pr-10 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   onChange={handleChange}
+                  value={formData.password}
                 />
                 <button
                   type="button"

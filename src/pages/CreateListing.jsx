@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getCookie } from "../utils/cookie"; // Import getCookie
 
 export default function CreateListing() {
   const { currentUser } = useSelector((state) => state.user);
@@ -53,6 +54,15 @@ export default function CreateListing() {
           }
         );
 
+        if (!response.ok) {
+          const errorData = await response.json();
+          let errorMessage = `HTTP error! status: ${response.status}`;
+          if (errorData?.error?.message) {
+            errorMessage = errorData.error.message;
+          }
+          throw new Error(errorMessage);
+        }
+
         const data = await response.json();
         if (data.success) {
           uploadedUrls.push(data.data.url);
@@ -89,7 +99,6 @@ export default function CreateListing() {
   };
 
   const handleChange = (e) => {
-    // For radio buttons (listing type)
     if (e.target.name === "type") {
       setFormData({
         ...formData,
@@ -98,7 +107,6 @@ export default function CreateListing() {
       return;
     }
 
-    // For checkboxes
     if (
       e.target.id === "parking" ||
       e.target.id === "furnished" ||
@@ -111,7 +119,6 @@ export default function CreateListing() {
       return;
     }
 
-    // For other inputs
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
@@ -131,26 +138,31 @@ export default function CreateListing() {
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch("/api/listing/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          userRef: currentUser._id,
-        }),
-      });
+      const accessToken = getCookie("access_token"); // Get the token
+      const res = await fetch(
+        "https://wohngluk-api.onrender.com/api/listing/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`, // Include the token
+          },
+          body: JSON.stringify({
+            ...formData,
+            userRef: currentUser._id,
+          }),
+        }
+      );
       const data = await res.json();
       setLoading(false);
-      if (data.success === false) {
-        setError(data.message);
+      if (data?.success === false) {
+        setError(data?.message);
         return;
       }
       toast.success("Listing created successfully!");
-      navigate(`/listing/${data._id}`);
+      navigate(`/listing/${data?._id}`);
     } catch (error) {
-      setError(error.message);
+      setError(error?.message);
       setLoading(false);
     }
   };
