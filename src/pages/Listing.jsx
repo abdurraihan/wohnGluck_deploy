@@ -13,7 +13,7 @@ import SwiperCore from "swiper";
 import "swiper/css/bundle";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import Contact from "../Components/Contact";
+import Contact from "../Components/Contact.jsx";
 
 export default function Listing() {
   const [listing, setListing] = useState(null);

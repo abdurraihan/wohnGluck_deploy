@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import OAuth from "../Components/OAuth";
+import OAuth from "../Components/OAuth.jsx";
 import {
   signInFailure,
   signInStart,
