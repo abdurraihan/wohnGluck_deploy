@@ -88,14 +88,17 @@ function Profile() {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // <-- added
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        `https://wohngluk-api.onrender.com/api/user/update/${currentUser._id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // <-- added
+          body: JSON.stringify(formData),
+        }
+      );
       const data = await res.json();
       if (data.success === false) {
         dispatch(updateUserFailure(data.message));
@@ -112,13 +115,16 @@ function Profile() {
     e.preventDefault();
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // <-- added
-      });
+      const res = await fetch(
+        `https://wohngluk-api.onrender.com/api/user/delete/${currentUser._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // <-- added
+        }
+      );
       const data = await res.json();
       if (data.success === false) {
         dispatch(deleteUserFailure(data.message));
@@ -134,9 +140,12 @@ function Profile() {
   const handleSignOut = async () => {
     try {
       dispatch(signInStart());
-      const res = await fetch("/api/auth/signout", {
-        credentials: "include", // <-- added
-      });
+      const res = await fetch(
+        "https://wohngluk-api.onrender.com/api/auth/signout",
+        {
+          credentials: "include", // <-- added
+        }
+      );
       const data = await res.json();
       if (data.success === false) {
         dispatch(signOutFailure(data.message));
@@ -152,9 +161,12 @@ function Profile() {
   const handleShowListings = async () => {
     try {
       setShowListingError(false);
-      const res = await fetch(`/api/listing/user/${currentUser._id}`, {
-        credentials: "include", // <-- added
-      });
+      const res = await fetch(
+        `https://wohngluk-api.onrender.com/api/listing/user/${currentUser._id}`,
+        {
+          credentials: "include", // <-- added
+        }
+      );
       const data = await res.json();
       if (data.success === false) {
         setShowListingError(true);
@@ -168,10 +180,13 @@ function Profile() {
 
   const handleListingDelete = async (listingId) => {
     try {
-      const res = await fetch(`/api/listing/delete/${listingId}`, {
-        method: "DELETE",
-        credentials: "include", // <-- added
-      });
+      const res = await fetch(
+        `https://wohngluk-api.onrender.com/api/listing/delete/${listingId}`,
+        {
+          method: "DELETE",
+          credentials: "include", // <-- added
+        }
+      );
       const data = await res.json();
       if (data.success === false) {
         toast.error(data.message);
