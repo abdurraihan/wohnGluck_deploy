@@ -22,7 +22,6 @@ function OAuth() {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
           body: JSON.stringify({
             name: result.user.displayName,
             email: result.user.email,
@@ -33,7 +32,16 @@ function OAuth() {
 
       const data = await res.json();
       console.log("data from google", data);
-      dispatch(signInSuccess(data));
+
+      // Store the access_token in localStorage
+      if (data?.access_token) {
+        localStorage.setItem("accessToken", data.access_token);
+      }
+
+      // Dispatch the user data (without the token if you prefer to keep it separate in Redux)
+      const { access_token, ...userData } = data; // Separate token from user data
+      dispatch(signInSuccess(userData));
+
       navigate("/");
     } catch (error) {
       console.log("could not sign in with google ", error);

@@ -7,22 +7,24 @@ import {
   deleteUserFailure,
   deleteUserStart,
   deleteUserSuccess,
-  signInFailure,
-  signInStart,
   signOutFailure,
+  signOutStart,
   signOutSuccess,
   updateUserFailure,
   updateUserStart,
   updateUserSuccess,
 } from "../redux/user/userSlice";
-import { getCookie } from "../utils/cookie.js";
 
 function Profile() {
-  const { currentUser, loading, error } = useSelector((state) => state.user);
+  const {
+    currentUser,
+    loading: userLoading,
+    error: userError,
+  } = useSelector((state) => state.user);
   const fileRef = useRef(null);
   const [file, setFile] = useState(null);
-  const [fileLoading, setLoading] = useState(false);
-  const [FileError, setError] = useState(null);
+  const [fileLoading, setFileLoading] = useState(false);
+  const [fileError, setFileError] = useState(null);
   const [showListingError, setShowListingError] = useState(false);
   const [userListings, setUserListings] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -43,8 +45,8 @@ function Profile() {
   }, [file]);
 
   const handleFileUpload = async (file) => {
-    setLoading(true);
-    setError(null);
+    setFileLoading(true);
+    setFileError(null);
     const formDataObj = new FormData();
     formDataObj.append("image", file);
 
@@ -76,9 +78,9 @@ function Profile() {
         throw new Error(data.error.message);
       }
     } catch (err) {
-      setError(err.message);
+      setFileError(err.message);
     } finally {
-      setLoading(false);
+      setFileLoading(false);
     }
   };
 
@@ -90,14 +92,14 @@ function Profile() {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
-      const accessToken = getCookie("access_token");
+      const accessToken = localStorage.getItem("accessToken"); // Get token from localStorage
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/user/update/${currentUser._id}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`, // Manually send token
+            Authorization: `Bearer ${accessToken}`, // Send token in Authorization header
           },
           body: JSON.stringify(formData),
         }
@@ -118,14 +120,14 @@ function Profile() {
     e.preventDefault();
     try {
       dispatch(deleteUserStart());
-      const accessToken = getCookie("access_token");
+      const accessToken = localStorage.getItem("accessToken"); // Get token from localStorage
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/user/delete/${currentUser._id}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`, // Manually send token
+            Authorization: `Bearer ${accessToken}`, // Send token in Authorization header
           },
         }
       );
@@ -143,12 +145,10 @@ function Profile() {
 
   const handleSignOut = async () => {
     try {
-      dispatch(signInStart());
+      dispatch(signOutStart());
+      // No need to send credentials: "include" as we are clearing localStorage on the client
       const res = await fetch(
-        "https://wohngluk-api.onrender.com/api/auth/signout",
-        {
-          credentials: "include", // Keep this for cookie clearing
-        }
+        "https://wohngluk-api.onrender.com/api/auth/signout"
       );
       const data = await res.json();
       if (data?.success === false) {
@@ -156,21 +156,22 @@ function Profile() {
         return;
       }
       dispatch(signOutSuccess());
+      localStorage.removeItem("accessToken"); // Clear token from localStorage
       toast.success("Signed out successfully!");
     } catch (error) {
-      dispatch(signInFailure(error));
+      dispatch(signOutFailure(error));
     }
   };
 
   const handleShowListings = async () => {
     try {
       setShowListingError(false);
-      const accessToken = getCookie("access_token");
+      const accessToken = localStorage.getItem("accessToken"); // Get token from localStorage
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/listing/user/${currentUser._id}`,
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`, // Manually send token
+            Authorization: `Bearer ${accessToken}`, // Send token in Authorization header
           },
         }
       );
@@ -187,13 +188,13 @@ function Profile() {
 
   const handleListingDelete = async (listingId) => {
     try {
-      const accessToken = getCookie("access_token");
+      const accessToken = localStorage.getItem("accessToken"); // Get token from localStorage
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/listing/delete/${listingId}`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${accessToken}`, // Manually send token
+            Authorization: `Bearer ${accessToken}`, // Send token in Authorization header
           },
         }
       );
@@ -212,7 +213,7 @@ function Profile() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-100 to-blue-200 min-h-screen flex items-center justify-center  py-10 px-4">
+    <div className="bg-gradient-to-r from-blue-100 to-blue-200 min-h-screen flex items-center justify-center py-10 px-4">
       <div className="bg-white rounded-2xl shadow-2xl p-10 max-w-lg w-full">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">
           <span className="block text-indigo-600">My</span>
@@ -291,9 +292,9 @@ function Profile() {
           </div>
           <button
             className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg uppercase hover:bg-indigo-700 transition-colors disabled:opacity-70"
-            disabled={loading || fileLoading}
+            disabled={userLoading || fileLoading}
           >
-            {loading ? "Updating..." : "Update Profile"}
+            {userLoading ? "Updating..." : "Update Profile"}
           </button>
           <Link
             className="w-full block text-center bg-gray-700 text-white py-3 rounded-lg uppercase font-bold hover:bg-green-700 transition-colors"
@@ -302,12 +303,14 @@ function Profile() {
             Create Listing
           </Link>
         </form>
-        {FileError && (
+        {fileError && (
           <div className="text-red-500 mt-4 text-center">
-            Error: {FileError}
+            Error: {fileError}
           </div>
         )}
-        {error && <p className="text-red-600 mt-5 text-center">{error}</p>}
+        {userError && (
+          <p className="text-red-600 mt-5 text-center">{userError}</p>
+        )}
         <div className="flex justify-between mt-8 text-sm">
           <span
             onClick={handleDeleteUser}
@@ -329,7 +332,6 @@ function Profile() {
           {showListingError ? "Error showing listing" : " "}
         </p>
 
-        {/* if not creat listing yet  */}
         {userListings.length === 0 && (
           <div className="flex flex-col items-center text-center bg-gray-100 p-6 rounded-lg shadow-md mt-6">
             <p className="text-gray-700 text-lg font-semibold">
@@ -346,8 +348,8 @@ function Profile() {
             </Link>
           </div>
         )}
-        {/* Add User Listings Section Below */}
-        {userListings && userListings.length > 0 && (
+
+        {userListings.length > 0 && (
           <div className="max-w-2xl w-full bg-white shadow-lg rounded-lg p-6 mt-10">
             <h2 className="text-center text-2xl font-bold text-gray-800 mb-6">
               Your Listings

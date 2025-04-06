@@ -13,6 +13,7 @@ const SignIn = () => {
   const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -20,7 +21,7 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      dispatch(signInStart);
+      dispatch(signInStart());
       const res = await fetch(
         "https://wohngluk-api.onrender.com/api/auth/signin",
         {
@@ -28,25 +29,31 @@ const SignIn = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
-          body: JSON.stringify(formData),
+          body: JSON.stringify(formData), // Removed credentials: "include"
         }
       );
 
       const data = await res.json();
 
-      if (data.success == false) {
-        dispatch(signInFailure(data.message));
-
+      if (!res.ok) {
+        dispatch(signInFailure(data?.message || "Sign in failed"));
         return;
       }
 
-      dispatch(signInSuccess(data));
-      navigate("/");
+      // Store the access_token in localStorage
+      if (data?.access_token) {
+        localStorage.setItem("accessToken", data.access_token);
+      }
 
-      console.log(data);
+      // Dispatch user data (excluding the raw token if you prefer)
+      const { access_token, ...userData } = data;
+      dispatch(signInSuccess(userData));
+
+      navigate("/");
+      console.log("Sign in success:", userData);
     } catch (error) {
-      dispatch(signInFailure(error.message));
+      dispatch(signInFailure(error.message || "An unexpected error occurred"));
+      console.error("Sign in error:", error);
     }
   };
 
@@ -78,7 +85,7 @@ const SignIn = () => {
         >
           {loading ? "Loading..." : "Sign in"}
         </button>
-        <OAuth></OAuth>
+        <OAuth />
       </form>
       <div className="flex gap-2 mt-5">
         <p> Dont Have an account?</p>
