@@ -33,9 +33,9 @@ function OAuth() {
       const data = await res.json();
       console.log("data from google", data);
 
-      // Store the access_token in localStorage
+      // Store the access_token in sessionStorage
       if (data?.access_token) {
-        localStorage.setItem("accessToken", data.access_token);
+        sessionStorage.setItem("accessToken", data.access_token);
       }
 
       // Dispatch the user data (without the token if you prefer to keep it separate in Redux)

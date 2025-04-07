@@ -92,7 +92,7 @@ function Profile() {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
-      const accessToken = localStorage.getItem("accessToken"); // Get token from localStorage
+      const accessToken = sessionStorage.getItem("accessToken"); // Get token from sessionStorage
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/user/update/${currentUser._id}`,
         {
@@ -120,7 +120,7 @@ function Profile() {
     e.preventDefault();
     try {
       dispatch(deleteUserStart());
-      const accessToken = localStorage.getItem("accessToken"); // Get token from localStorage
+      const accessToken = sessionStorage.getItem("accessToken"); // Get token from sessionStorage
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/user/delete/${currentUser._id}`,
         {
@@ -146,7 +146,7 @@ function Profile() {
   const handleSignOut = async () => {
     try {
       dispatch(signOutStart());
-      // No need to send credentials: "include" as we are clearing localStorage on the client
+      // No need to send credentials: "include" as we are clearing sessionStorage on the client
       const res = await fetch(
         "https://wohngluk-api.onrender.com/api/auth/signout"
       );
@@ -156,7 +156,7 @@ function Profile() {
         return;
       }
       dispatch(signOutSuccess());
-      localStorage.removeItem("accessToken"); // Clear token from localStorage
+      sessionStorage.removeItem("accessToken"); // Clear token from sessionStorage
       toast.success("Signed out successfully!");
     } catch (error) {
       dispatch(signOutFailure(error));
@@ -166,7 +166,7 @@ function Profile() {
   const handleShowListings = async () => {
     try {
       setShowListingError(false);
-      const accessToken = localStorage.getItem("accessToken"); // Get token from localStorage
+      const accessToken = sessionStorage.getItem("accessToken"); // Get token from sessionStorage
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/listing/user/${currentUser._id}`,
         {
@@ -188,7 +188,7 @@ function Profile() {
 
   const handleListingDelete = async (listingId) => {
     try {
-      const accessToken = localStorage.getItem("accessToken"); // Get token from localStorage
+      const accessToken = sessionStorage.getItem("accessToken"); // Get token from sessionStorage
       const res = await fetch(
         `https://wohngluk-api.onrender.com/api/listing/delete/${listingId}`,
         {
