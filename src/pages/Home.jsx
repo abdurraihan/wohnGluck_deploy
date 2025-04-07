@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ScaleLoader } from "react-spinners"; // Import the loader component
 import SwiperCore from "swiper";
 import "swiper/css/bundle";
 import { Navigation } from "swiper/modules";
@@ -11,6 +12,7 @@ export default function Home() {
   const [offerListings, setOfferListings] = useState([]);
   const [saleListings, setSaleListings] = useState([]);
   const [rentListings, setRentListings] = useState([]);
+  const [loading, setLoading] = useState(true); // Add a loading state
   SwiperCore.use([Navigation]);
   console.log(offerListings);
   useEffect(() => {
@@ -48,10 +50,27 @@ export default function Home() {
         setSaleListings(data);
       } catch (error) {
         log(error);
+      } finally {
+        setLoading(false); // Set loading to false after all fetches complete
       }
     };
     fetchOfferListings();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <ScaleLoader
+          color="#36d7b7"
+          height={50}
+          width={5}
+          radius={10}
+          margin={4}
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* top */}
@@ -78,14 +97,13 @@ export default function Home() {
         {offerListings &&
           offerListings.length > 0 &&
           offerListings.map((listing) => (
-            <SwiperSlide>
+            <SwiperSlide key={listing._id}>
               <div
                 style={{
                   background: `url(${listing.imageUrls[0]}) center no-repeat`,
                   backgroundSize: "cover",
                 }}
                 className="h-[500px]"
-                key={listing._id}
               ></div>
             </SwiperSlide>
           ))}
