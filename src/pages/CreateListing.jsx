@@ -2,7 +2,6 @@ import React, { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getCookie } from "../utils/cookie"; // Import getCookie
 
 export default function CreateListing() {
   const { currentUser } = useSelector((state) => state.user);
@@ -138,7 +137,7 @@ export default function CreateListing() {
     setLoading(true);
     setError(false);
     try {
-      const accessToken = getCookie("access_token"); // Get the token
+      const accessToken = sessionStorage.getItem("accessToken"); // Get the token
       const res = await fetch(
         "https://wohngluk-api.onrender.com/api/listing/create",
         {
