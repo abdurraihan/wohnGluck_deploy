@@ -40,9 +40,9 @@ const SignIn = () => {
         return;
       }
 
-      // Store the access_token in localStorage
+      // Store the access_token in sessionStorage
       if (data?.access_token) {
-        localStorage.setItem("accessToken", data.access_token);
+        sessionStorage.setItem("accessToken", data.access_token);
       }
 
       // Dispatch user data (excluding the raw token if you prefer)

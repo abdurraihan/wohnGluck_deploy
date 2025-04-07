@@ -137,14 +137,19 @@ export default function CreateListing() {
     setLoading(true);
     setError(false);
     try {
-      const accessToken = sessionStorage.getItem("accessToken"); // Get the token
+      const accessToken = sessionStorage.getItem("accessToken"); // Get the token from sessionStorage
+      if (!accessToken) {
+        setError("Authentication required. Please sign in.");
+        setLoading(false);
+        return;
+      }
       const res = await fetch(
         "https://wohngluk-api.onrender.com/api/listing/create",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`, // Include the token
+            Authorization: `Bearer ${accessToken}`, // Include the token in the Authorization header
           },
           body: JSON.stringify({
             ...formData,
@@ -447,7 +452,7 @@ export default function CreateListing() {
               </div>
             )}
             <button
-              disabled={loading}
+              disabled={loading || isUploading}
               type="submit"
               className="w-full px-6 py-3 bg-gray-700 text-white rounded-md hover:bg-gray-500 transition-colors disabled:opacity-70"
             >
