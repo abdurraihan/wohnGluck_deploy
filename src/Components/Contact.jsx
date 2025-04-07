@@ -14,7 +14,9 @@ export default function Contact({ listing }) {
   useEffect(() => {
     const fetchLandlord = async () => {
       try {
-        const res = await fetch(`/api/listing/${listing.userRef}`);
+        const res = await fetch(
+          `https://wohngluk-api.onrender.com/api/listing/${listing.userRef}`
+        );
         const data = await res.json();
         setLandlord(data);
       } catch (error) {
